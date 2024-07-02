@@ -1,46 +1,31 @@
 package com.example.folliclecalulator
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.folliclecalulator.service.ZoneService
 import com.example.folliclecalulator.ui.theme.FollicleCalulatorTheme
+import com.example.folliclecalulator.poko.Zone
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +41,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent() {
+    var zones by remember { mutableStateOf(ZoneService.getAllZones()) }
+
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -74,15 +61,26 @@ fun MainContent() {
                 ImageDisplay()
             }
             Spacer(modifier = Modifier.height(16.dp))
-            AddZoneRow()
+            AddZoneRow(onZoneAdded = { newZone ->
+                ZoneService.addZone(newZone)
+                zones = ZoneService.getAllZones()
+            })
+            Zones(zones = zones)
         }
     }
 }
 
-
+@Composable
+fun ImageDisplay(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(id = R.drawable.g_logo),
+        contentDescription = "G Logo",
+        modifier = modifier.size(60.dp)
+    )
+}
 
 @Composable
-fun AddZoneRow() {
+fun AddZoneRow(onZoneAdded: (String) -> Unit) {
     val textState = remember { mutableStateOf(TextFieldValue()) }
     Row(
         modifier = Modifier
@@ -122,13 +120,17 @@ fun AddZoneRow() {
                         }
                         innerTextField()
                     }
-                }
-                ,
-
+                },
                 modifier = Modifier.fillMaxSize()
             )
         }
-        CustomStyledButton(onClick = { /* Add zone logic */ }, text = "Add Zone")
+        CustomStyledButton(onClick = {
+            val zoneName = textState.value.text
+            if (zoneName.isNotBlank()) {
+                onZoneAdded(zoneName)
+                textState.value = TextFieldValue("")
+            }
+        }, text = "Add Zone")
     }
 }
 
@@ -136,30 +138,29 @@ fun AddZoneRow() {
 fun CustomStyledButton(onClick: () -> Unit, text: String) {
     Button(
         onClick = onClick,
-        modifier = Modifier.height(56.dp)
+        modifier = Modifier
+            .height(56.dp)
             .padding(horizontal = 8.dp),
         shape = RoundedCornerShape(20.dp),
-
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp,
-            pressedElevation = 0.dp
         ),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFF24a1d5),
             contentColor = Color.White
-    ),
+        ),
     ) {
         Text(text)
     }
 }
 
-
 @Composable
-fun ImageDisplay(modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.g_logo),
-        contentDescription = "G Logo",
-        modifier = modifier.size(60.dp)
-    )
+fun Zones(zones: List<Zone>) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        zones.forEach { zone ->
+            Text(text = zone.name)
+        }
+    }
 }
-
