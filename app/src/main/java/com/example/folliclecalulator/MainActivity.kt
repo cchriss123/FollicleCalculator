@@ -61,10 +61,9 @@ fun MainContent() {
                 ImageDisplay()
             }
             Spacer(modifier = Modifier.height(16.dp))
-            AddZoneRow(onZoneAdded = { newZone ->
-                ZoneService.addZone(newZone)
+            AddZoneRow {
                 zones = ZoneService.getAllZones()
-            })
+            }
             Zones(zones = zones)
         }
     }
@@ -80,7 +79,7 @@ fun ImageDisplay(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AddZoneRow(onZoneAdded: (String) -> Unit) {
+fun AddZoneRow(onUpdate: () -> Unit) {
     val textState = remember { mutableStateOf(TextFieldValue()) }
     Row(
         modifier = Modifier
@@ -127,8 +126,9 @@ fun AddZoneRow(onZoneAdded: (String) -> Unit) {
         CustomStyledButton(onClick = {
             val zoneName = textState.value.text
             if (zoneName.isNotBlank()) {
-                onZoneAdded(zoneName)
+                ZoneService.addZone(zoneName)
                 textState.value = TextFieldValue("")
+                onUpdate()
             }
         }, text = "Add Zone")
     }
