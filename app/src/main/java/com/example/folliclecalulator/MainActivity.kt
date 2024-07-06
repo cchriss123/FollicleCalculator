@@ -55,16 +55,16 @@ fun MainContent() {
                 ImageDisplay()
             }
             Spacer(modifier = Modifier.height(16.dp))
-            AddZoneRow { zoneName ->
-                val newZone = Zone(name = zoneName)
-                zones = zones + newZone
+            AddZoneRow { zones = zones + Zone(name = it) }
+            Zones(zones) { updatedZone ->
+                zones = zones.map {
+                    if (it.id == updatedZone.id) updatedZone else it
+                }
             }
-            Zones(zones = zones, onZoneUpdate = { updatedZone ->
-                zones = zones.map { if (it.id == updatedZone.id) updatedZone else it }
-            })
         }
     }
 }
+
 
 @Composable
 fun ImageDisplay(modifier: Modifier = Modifier) {
@@ -92,12 +92,12 @@ fun AddZoneRow(onAddZone: (String) -> Unit) {
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 18.sp),
 //            shape = RoundedCornerShape(20.dp), // Apply rounded corners
-//            colors = TextFieldDefaults.colors(
-//                focusedContainerColor = Color.White,
-//                unfocusedContainerColor = Color.White,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
 //                focusedIndicatorColor = Color.Transparent, // Hide the focused indicator
 //                unfocusedIndicatorColor = Color.Transparent // Hide the unfocused indicator
-//            ),
+            ),
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp)
@@ -160,24 +160,27 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
         }
     }
 
-    Column (
-
-        // add a border to the column
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(46.dp)
+            .border(0.5.dp, Color.Black, RoundedCornerShape(8.dp))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = zone.name,
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.align(Alignment.CenterHorizontally)  // Centering the text
+        )
 
 
-    )
-    {
-
-
-
-
-
-
+        Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+            ),
             value = areaInCm2,
             onValueChange = { newTextFieldValue ->
                 areaInCm2 = newTextFieldValue
@@ -191,9 +194,11 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
         TextField(
-
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+            ),
             value = fuPerCm2,
             onValueChange = { newTextFieldValue ->
                 fuPerCm2 = newTextFieldValue
@@ -207,7 +212,7 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
         Text(text = "FU per Zone: $fuPerZone")
     }
 }
+
