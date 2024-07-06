@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.folliclecalulator.ui.theme.FollicleCalulatorTheme
 import com.example.folliclecalulator.poko.Zone
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -149,11 +150,16 @@ fun Zones(zones: List<Zone>, onZoneUpdate: (Zone) -> Unit) {
 
 @Composable
 fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
+    var caliber by remember { mutableStateOf(TextFieldValue(zone.caliber.toString())) }
     var areaInCm2 by remember { mutableStateOf(TextFieldValue(zone.areaInCm2.toString())) }
     var fuPerCm2 by remember { mutableStateOf(TextFieldValue(zone.fuPerCm2.toString())) }
+    var hairPerCm2 by remember { mutableStateOf(TextFieldValue(zone.hairPerCm2.toString())) }
+    var donorDesiredCoverageValue by remember { mutableStateOf(TextFieldValue(zone.donorDesiredCoverageValue.toString())) }
+
 
     val fuPerZone by remember {
         derivedStateOf {
+            val caliber = caliber.text.toDoubleOrNull() ?: 0.0
             val area = areaInCm2.text.toDoubleOrNull() ?: 0.0
             val fu = fuPerCm2.text.toDoubleOrNull() ?: 0.0
             (area * fu).toInt()
@@ -170,49 +176,117 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
         Text(
             text = zone.name,
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.align(Alignment.CenterHorizontally)  // Centering the text
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextField(
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-            ),
-            value = areaInCm2,
-            onValueChange = { newTextFieldValue ->
-                areaInCm2 = newTextFieldValue
-                val updatedZone = zone.copy(
-                    areaInCm2 = areaInCm2.text.toDoubleOrNull() ?: 0.0
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f)) {
+
+
+                TextField(
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                    ),
+                    value = caliber,
+                    onValueChange = { newTextFieldValue ->
+                        caliber = newTextFieldValue
+                        val updatedZone = zone.copy(
+                            caliber = caliber.text.toDoubleOrNull() ?: 0.0
+                        )
+                        onZoneUpdate(updatedZone)
+                    },
+                    label = { Text("Caliber") }
                 )
-                onZoneUpdate(updatedZone)
-            },
-            label = { Text("Area (cm²)") }
-        )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        TextField(
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-            ),
-            value = fuPerCm2,
-            onValueChange = { newTextFieldValue ->
-                fuPerCm2 = newTextFieldValue
-                val updatedZone = zone.copy(
-                    fuPerCm2 = fuPerCm2.text.toDoubleOrNull() ?: 0.0
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+
+
+
+                TextField(
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                    ),
+                    value = areaInCm2,
+                    onValueChange = { newTextFieldValue ->
+                        areaInCm2 = newTextFieldValue
+                        val updatedZone = zone.copy(
+                            areaInCm2 = areaInCm2.text.toDoubleOrNull() ?: 0.0
+                        )
+                        onZoneUpdate(updatedZone)
+                    },
+                    label = { Text("Area (cm²)") }
                 )
-                onZoneUpdate(updatedZone)
-            },
-            label = { Text("FU per cm²") }
-        )
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "FU per Zone: $fuPerZone")
+                TextField(
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                    ),
+                    value = fuPerCm2,
+                    onValueChange = { newTextFieldValue ->
+                        fuPerCm2 = newTextFieldValue
+                        val updatedZone = zone.copy(
+                            fuPerCm2 = fuPerCm2.text.toDoubleOrNull() ?: 0.0
+                        )
+                        onZoneUpdate(updatedZone)
+                    },
+                    label = { Text("FU per cm²") }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "FU per Zone: $fuPerZone")
+                // Add more Text elements here if needed
+            }
+        }
     }
 }
 
+//
+//data class Zone(
+//    val id: UUID = UUID.randomUUID(),
+//    val name: String,
+//    var caliber: Double = 0.0,
+//    var fuPerCm2: Double = 0.0,
+//    var hairPerCm2: Double = 0.0,
+//    var areaInCm2: Double = 0.0,
+//    var donorDesiredCoverageValue: Double = 0.0,
+//    var recipientDesiredCoverageValue: Double = 0.0
+//) {
+//    val fuPerZone: Double
+//        get() = areaInCm2 * fuPerCm2
+//
+//    val hairPerFu: Double
+//        get() = hairPerCm2 / fuPerCm2
+//
+//    val coverageValue: Double
+//        get() = caliber * hairPerCm2
+//
+//    val hairPerZone: Double
+//        get() = areaInCm2 * hairPerCm2
+//
+//    val fuExtractedToReachDonorDesiredCoverageValue: Double
+//        get() = fuPerZone - ((areaInCm2 * donorDesiredCoverageValue) / (caliber * hairPerFu))
+//
+//    val fuImplantedToReachDesiredRecipientCoverageValue: Double
+//        get() {
+//            val startingCoverageValue = caliber * hairPerCm2
+//            val coverageValueDifference = recipientDesiredCoverageValue - startingCoverageValue
+//            return (areaInCm2 * coverageValueDifference) / (caliber * hairPerFu)
+//        }
+//}
