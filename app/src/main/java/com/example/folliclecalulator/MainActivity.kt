@@ -150,19 +150,26 @@ fun Zones(zones: List<Zone>, onZoneUpdate: (Zone) -> Unit) {
 
 @Composable
 fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
-    var caliber by remember { mutableStateOf(TextFieldValue(zone.caliber.toString())) }
     var areaInCm2 by remember { mutableStateOf(TextFieldValue(zone.areaInCm2.toString())) }
     var fuPerCm2 by remember { mutableStateOf(TextFieldValue(zone.fuPerCm2.toString())) }
     var hairPerCm2 by remember { mutableStateOf(TextFieldValue(zone.hairPerCm2.toString())) }
+    var caliber by remember { mutableStateOf(TextFieldValue(zone.caliber.toString())) }
     var donorDesiredCoverageValue by remember { mutableStateOf(TextFieldValue(zone.donorDesiredCoverageValue.toString())) }
 
 
     val fuPerZone by remember {
         derivedStateOf {
-            val caliber = caliber.text.toDoubleOrNull() ?: 0.0
             val area = areaInCm2.text.toDoubleOrNull() ?: 0.0
             val fu = fuPerCm2.text.toDoubleOrNull() ?: 0.0
             (area * fu).toInt()
+        }
+    }
+
+    val hairPerFu by remember {
+        derivedStateOf {
+            val hair = hairPerCm2.text.toDoubleOrNull() ?: 0.0
+            val fu = fuPerCm2.text.toDoubleOrNull() ?: 0.0
+            (hair / fu).toInt()
         }
     }
 
@@ -185,25 +192,7 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
 
 
-                TextField(
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                    ),
-                    value = caliber,
-                    onValueChange = { newTextFieldValue ->
-                        caliber = newTextFieldValue
-                        val updatedZone = zone.copy(
-                            caliber = caliber.text.toDoubleOrNull() ?: 0.0
-                        )
-                        onZoneUpdate(updatedZone)
-                    },
-                    label = { Text("Caliber") }
-                )
 
-
-
-                Spacer(modifier = Modifier.height(16.dp))
 
 
 
@@ -262,6 +251,28 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+
+                TextField(
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                    ),
+                    value = caliber,
+                    onValueChange = { newTextFieldValue ->
+                        caliber = newTextFieldValue
+                        val updatedZone = zone.copy(
+                            caliber = caliber.text.toDoubleOrNull() ?: 0.0
+                        )
+                        onZoneUpdate(updatedZone)
+                    },
+                    label = { Text("Caliber") }
+                )
+
+
+
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 TextField(
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
@@ -286,6 +297,7 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "FU per Zone: $fuPerZone")
+                Text(text = "Hair per FU: $hairPerFu")
                 // Add more Text elements here if needed
             }
         }
