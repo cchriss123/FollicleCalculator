@@ -244,6 +244,23 @@ fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
+                TextField(
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                    ),
+                    value = hairPerCm2,
+                    onValueChange = { newTextFieldValue ->
+                        hairPerCm2 = newTextFieldValue
+                        val updatedZone = zone.copy(
+                            hairPerCm2 = hairPerCm2.text.toDoubleOrNull() ?: 0.0
+                        )
+                        onZoneUpdate(updatedZone)
+                    },
+                    label = { Text("Hair per cm²") }
+                )
+
+
 
             }
 
