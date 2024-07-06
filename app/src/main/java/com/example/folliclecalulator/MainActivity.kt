@@ -9,12 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +18,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.folliclecalulator.service.ZoneService
 import com.example.folliclecalulator.ui.theme.FollicleCalulatorTheme
 import com.example.folliclecalulator.poko.Zone
 
@@ -41,11 +35,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent() {
-    var zones by remember { mutableStateOf(ZoneService.getAllZones()) }
+    var zones by remember { mutableStateOf(listOf<Zone>()) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
-    ) {
+    ) { it ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -61,10 +55,13 @@ fun MainContent() {
                 ImageDisplay()
             }
             Spacer(modifier = Modifier.height(16.dp))
-            AddZoneRow {
-                zones = ZoneService.getAllZones()
+            AddZoneRow { zoneName ->
+                val newZone = Zone(name = zoneName)
+                zones = zones + newZone
             }
-            Zones(zones = zones)
+            Zones(zones = zones, onZoneUpdate = { updatedZone ->
+                zones = zones.map { if (it.id == updatedZone.id) updatedZone else it }
+            })
         }
     }
 }
@@ -79,7 +76,7 @@ fun ImageDisplay(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AddZoneRow(onUpdate: () -> Unit) {
+fun AddZoneRow(onAddZone: (String) -> Unit) {
     val textState = remember { mutableStateOf(TextFieldValue()) }
     Row(
         modifier = Modifier
@@ -88,60 +85,46 @@ fun AddZoneRow(onUpdate: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        TextField(
+            value = textState.value,
+            onValueChange = { textState.value = it },
+            label = { Text("Zone Name") },
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 18.sp),
+//            shape = RoundedCornerShape(20.dp), // Apply rounded corners
+//            colors = TextFieldDefaults.colors(
+//                focusedContainerColor = Color.White,
+//                unfocusedContainerColor = Color.White,
+//                focusedIndicatorColor = Color.Transparent, // Hide the focused indicator
+//                unfocusedIndicatorColor = Color.Transparent // Hide the unfocused indicator
+//            ),
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp)
                 .padding(horizontal = 8.dp)
-                .background(color = Color.White, shape = RoundedCornerShape(20.dp))
-                .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(20.dp))
-        ) {
-            BasicTextField(
-                value = textState.value,
-                onValueChange = { textState.value = it },
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 18.sp,
-                ),
-                decorationBox = { innerTextField ->
-                    Box(
-                        contentAlignment = Alignment.CenterStart,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        if (textState.value.text.isEmpty()) {
-                            Text(
-                                text = "Zone Name",
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
-                                fontSize = 18.sp,
-                            )
-                        }
-                        innerTextField()
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+//                .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(20.dp)) // Apply border
+        )
         CustomStyledButton(onClick = {
             val zoneName = textState.value.text
             if (zoneName.isNotBlank()) {
-                ZoneService.addZone(zoneName)
+                onAddZone(zoneName)
                 textState.value = TextFieldValue("")
-                onUpdate()
             }
         }, text = "Add Zone")
     }
 }
 
+
+
+
 @Composable
-fun CustomStyledButton(onClick: () -> Unit, text: String) {
+fun CustomStyledButton(text: String, onClick: () -> Unit = {}) {
     Button(
         onClick = onClick,
         modifier = Modifier
             .height(56.dp)
             .padding(horizontal = 8.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(5.dp),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 10.dp,
         ),
@@ -154,13 +137,77 @@ fun CustomStyledButton(onClick: () -> Unit, text: String) {
     }
 }
 
+
 @Composable
-fun Zones(zones: List<Zone>) {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
+fun Zones(zones: List<Zone>, onZoneUpdate: (Zone) -> Unit) {
+    Column {
         zones.forEach { zone ->
-            Text(text = zone.name)
+            ZoneItem(zone = zone, onZoneUpdate = onZoneUpdate)
         }
+    }
+}
+
+@Composable
+fun ZoneItem(zone: Zone, onZoneUpdate: (Zone) -> Unit) {
+    var areaInCm2 by remember { mutableStateOf(TextFieldValue(zone.areaInCm2.toString())) }
+    var fuPerCm2 by remember { mutableStateOf(TextFieldValue(zone.fuPerCm2.toString())) }
+
+    val fuPerZone by remember {
+        derivedStateOf {
+            val area = areaInCm2.text.toDoubleOrNull() ?: 0.0
+            val fu = fuPerCm2.text.toDoubleOrNull() ?: 0.0
+            (area * fu).toInt()
+        }
+    }
+
+    Column (
+
+        // add a border to the column
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(46.dp)
+
+
+    )
+    {
+
+
+
+
+
+
+
+        TextField(
+            value = areaInCm2,
+            onValueChange = { newTextFieldValue ->
+                areaInCm2 = newTextFieldValue
+                val updatedZone = zone.copy(
+                    areaInCm2 = areaInCm2.text.toDoubleOrNull() ?: 0.0
+                )
+                onZoneUpdate(updatedZone)
+            },
+            label = { Text("Area (cm²)") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
+        TextField(
+
+            value = fuPerCm2,
+            onValueChange = { newTextFieldValue ->
+                fuPerCm2 = newTextFieldValue
+                val updatedZone = zone.copy(
+                    fuPerCm2 = fuPerCm2.text.toDoubleOrNull() ?: 0.0
+                )
+                onZoneUpdate(updatedZone)
+            },
+            label = { Text("FU per cm²") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
+        Text(text = "FU per Zone: $fuPerZone")
     }
 }
